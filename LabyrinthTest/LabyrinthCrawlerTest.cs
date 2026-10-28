@@ -156,7 +156,24 @@ public class LabyrinthCrawlerTest
     [Test]
     public void TurnAndWalkReturnsInventoryChangesPositionAndFacingTile()
     {
-        Assert.That(false);
+        var test = NewCrawlerFor("""
+                +--+
+                |  |
+                |x |
+                +--+
+                """);
+
+        test.Direction.TurnRight();
+
+        var inventory = test.Walk();
+
+        using var all = Assert.EnterMultipleScope();
+
+        Assert.That(inventory.HasItem, Is.False);
+        Assert.That(test.X, Is.EqualTo(2));
+        Assert.That(test.Y, Is.EqualTo(2));
+        Assert.That(test.Direction, Is.EqualTo(Direction.East));
+        Assert.That(test.FacingTile, Is.TypeOf<Wall>());
     }
 
     [Test]
