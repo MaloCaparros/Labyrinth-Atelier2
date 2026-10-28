@@ -118,7 +118,19 @@ public class LabyrinthCrawlerTest
     [Test]
     public void TurnLeftFacesWestTile()
     {
-        Assert.That(false);
+        var test = NewCrawlerFor("""
+                +--+
+                |  |
+                |x |
+                +--+
+                """);
+
+        test.Direction.TurnLeft();
+
+        using var all = Assert.EnterMultipleScope();
+
+        Assert.That(test.Direction, Is.EqualTo(Direction.West));
+        Assert.That(test.FacingTile, Is.TypeOf<Wall>());
     }
 
     [Test]
