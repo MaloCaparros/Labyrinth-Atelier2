@@ -1,12 +1,14 @@
-﻿using Labyrinth.Items;
-using Labyrinth.Tiles;
+﻿using Labyrinth.Tiles;
 
 namespace Labyrinth.Build
 {
     public interface IBuilder
     {
-        static readonly (int, int) InvalidPosition = (-1, -1);
+        /// <summary>
+        /// Raised each time a starting position is found while building.
+        /// </summary>
+        event EventHandler<StartEventArgs>? StartPositionFound;
 
-        Tile[,] Build(out (int, int) startPosition);
+        Tile[,] Build();
     }
 }
