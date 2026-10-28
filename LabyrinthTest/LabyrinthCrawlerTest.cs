@@ -7,16 +7,18 @@ namespace LabyrinthTest.Crawl;
 [TestFixture(Description = "Integration test for the crawler implementation in the labyrinth")]
 public class LabyrinthCrawlerTest
 {
+    private static ICrawler NewCrawlerFor(string asciiMap) =>
+        new Labyrinth.Labyrinth(new AsciiParser(asciiMap)).NewCrawler();
+
     #region Initialization
     [Test]
     public void InitWithCenteredX()
     {
-        var laby = new Labyrinth.Labyrinth(new AsciiParser("""
+        var test = NewCrawlerFor("""
                 +--+
                 | x|
                 +--+
-                """));
-        var test = laby.NewCrawler();
+                """);
 
         using var all = Assert.EnterMultipleScope();
 
@@ -29,13 +31,12 @@ public class LabyrinthCrawlerTest
     [Test]
     public void InitWithMultipleXUsesLastOne()
     {
-        var laby = new Labyrinth.Labyrinth(new AsciiParser("""
+        var test = NewCrawlerFor("""
                 +--+
                 |x |
                 | x|
                 +--+
-                """));
-        var test = laby.NewCrawler();
+                """);
 
         using var all = Assert.EnterMultipleScope();
 
@@ -60,12 +61,11 @@ public class LabyrinthCrawlerTest
     [Test]
     public void FacingNorthOnUpperTileReturnsOutside()
     {
-        var laby = new Labyrinth.Labyrinth(new AsciiParser("""
+        var test = NewCrawlerFor("""
                 +x+
                 | |
                 +-+
-                """));
-        var test = laby.NewCrawler();
+                """);
 
         Assert.That(test.FacingTile, Is.TypeOf<Outside>());
     }
@@ -73,12 +73,11 @@ public class LabyrinthCrawlerTest
     [Test]
     public void FacingWestOnFarLeftTileReturnsOutside()
     {
-        var laby = new Labyrinth.Labyrinth(new AsciiParser("""
+        var test = NewCrawlerFor("""
                 +-+
                 x |
                 +-+
-                """));
-        var test = laby.NewCrawler();
+                """);
 
         test.Direction.TurnLeft();
 
@@ -88,12 +87,11 @@ public class LabyrinthCrawlerTest
     [Test]
     public void FacingEastOnFarRightTileReturnsOutside()
     {
-        var laby = new Labyrinth.Labyrinth(new AsciiParser("""
+        var test = NewCrawlerFor("""
                 +-+
                 | x
                 +-+
-                """));
-        var test = laby.NewCrawler();
+                """);
 
         test.Direction.TurnRight();
 
@@ -103,12 +101,11 @@ public class LabyrinthCrawlerTest
     [Test]
     public void FacingSouthOnBottomTileReturnsOutside()
     {
-        var laby = new Labyrinth.Labyrinth(new AsciiParser("""
+        var test = NewCrawlerFor("""
                 +-+
                 | |
                 +x+
-                """));
-        var test = laby.NewCrawler();
+                """);
 
         test.Direction.TurnRight();
         test.Direction.TurnRight();
@@ -159,12 +156,11 @@ public class LabyrinthCrawlerTest
     [Test]
     public void WalkUseKeyToOpenADoorAndPass()
     {
-        var laby = new Labyrinth.Labyrinth(new AsciiParser("""
+        var test = NewCrawlerFor("""
                 +--+
                 |xk|
                 +-/|
-                """));
-        var test = laby.NewCrawler();
+                """);
 
         test.Direction.TurnRight();
 

@@ -13,11 +13,11 @@ public class LabyrinthCrawler(int x, int y, Tile[,] tiles) : ICrawler
         get
         {
             var (facingX, facingY) = (X + Direction.DeltaX, Y + Direction.DeltaY);
-            return facingX < 0 || facingY < 0 || facingX >= tiles.GetLength(0) || facingY >= tiles.GetLength(1)
-                ? Outside.Singleton
-                : tiles[facingX, facingY];
+            return IsOutside(facingX, facingY) ? Outside.Singleton : tiles[facingX, facingY];
         }
     }
+    private bool IsOutside(int tileX, int tileY) =>
+        tileX < 0 || tileY < 0 || tileX >= tiles.GetLength(0) || tileY >= tiles.GetLength(1);
     public Inventory Walk()
     {
         throw new NotImplementedException();
