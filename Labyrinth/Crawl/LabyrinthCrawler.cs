@@ -5,8 +5,8 @@ namespace Labyrinth.Crawl;
 
 public class LabyrinthCrawler(int x, int y, Tile[,] tiles) : ICrawler
 {
-    public int X { get; } = x;
-    public int Y { get; } = y;
+    public int X { get; private set; } = x;
+    public int Y { get; private set; } = y;
     public Direction Direction { get; } = Direction.North;
     public Tile FacingTile
     {
@@ -20,6 +20,9 @@ public class LabyrinthCrawler(int x, int y, Tile[,] tiles) : ICrawler
         tileX < 0 || tileY < 0 || tileX >= tiles.GetLength(0) || tileY >= tiles.GetLength(1);
     public Inventory Walk()
     {
-        throw new NotImplementedException();
+        var inventory = FacingTile.Pass();
+        X += Direction.DeltaX;
+        Y += Direction.DeltaY;
+        return inventory;
     }
 }
