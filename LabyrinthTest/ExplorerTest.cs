@@ -8,7 +8,7 @@ namespace LabyrinthTest.Explore;
 public class ExplorerTest
 {
     /// <summary>
-    /// Fake random generator returning the given values in order (0 = walk, 1 = turn left, 2 = turn right).
+    /// Fake random generator returning the given values in order (0 = turn left, 1 = turn right, 2 = walk).
     /// </summary>
     private class FakeRandom(params int[] values) : Random
     {
@@ -17,8 +17,29 @@ public class ExplorerTest
         public override int Next(int maxValue) => _values.Dequeue();
     }
 
+    private List<(int X, int Y, Direction Direction)> _positions = [];
+    private List<(int X, int Y, Direction Direction)> _directions = [];
+
+    [SetUp]
+    public void ResetEvents()
+    {
+        _positions = [];
+        _directions = [];
+    }
+
     private static ICrawler NewCrawlerFor(string asciiMap) =>
         new Labyrinth.Labyrinth(new AsciiParser(asciiMap)).NewCrawler();
+
+    /// <summary>
+    /// Creates an explorer playing the given moves and recording the raised events.
+    /// </summary>
+    private Explorer NewExplorer(ICrawler crawler, params int[] moves)
+    {
+        var explorer = new Explorer(crawler, new FakeRandom(moves));
+        explorer.PositionChanged += (_, e) => _positions.Add((e.X, e.Y, e.Direction));
+        explorer.DirectionChanged += (_, e) => _directions.Add((e.X, e.Y, e.Direction));
+        return explorer;
+    }
 
     [Test]
     public void GetOutWhenAlreadyFacingOutsideReturnsTrueWithoutMoving()
@@ -28,7 +49,7 @@ public class ExplorerTest
                 | |
                 +-+
                 """);
-        var test = new Explorer(crawler, new FakeRandom());
+        var test = NewExplorer(crawler);
 
         var found = test.GetOut(10);
 
@@ -37,6 +58,8 @@ public class ExplorerTest
         Assert.That(found, Is.True);
         Assert.That(crawler.X, Is.EqualTo(1));
         Assert.That(crawler.Y, Is.EqualTo(0));
+        Assert.That(_positions, Is.Empty);
+        Assert.That(_directions, Is.Empty);
     }
 
     [Test]
@@ -47,7 +70,7 @@ public class ExplorerTest
                 | x|
                 +--+
                 """);
-        var test = new Explorer(crawler, new FakeRandom());
+        var test = NewExplorer(crawler);
 
         var found = test.GetOut(0);
 
@@ -56,6 +79,8 @@ public class ExplorerTest
         Assert.That(found, Is.False);
         Assert.That(crawler.X, Is.EqualTo(2));
         Assert.That(crawler.Y, Is.EqualTo(1));
+        Assert.That(_positions, Is.Empty);
+        Assert.That(_directions, Is.Empty);
     }
 
     [Test]
@@ -67,7 +92,7 @@ public class ExplorerTest
                 |x|
                 +-+
                 """);
-        var test = new Explorer(crawler, new FakeRandom(0, 0));
+        var test = NewExplorer(crawler, 2, 2);
 
         var found = test.GetOut(10);
 
@@ -77,6 +102,12 @@ public class ExplorerTest
         Assert.That(crawler.X, Is.EqualTo(1));
         Assert.That(crawler.Y, Is.EqualTo(0));
         Assert.That(crawler.Direction, Is.EqualTo(Direction.North));
+        Assert.That(_positions, Is.EqualTo(new[]
+        {
+            (1, 1, Direction.North),
+            (1, 0, Direction.North)
+        }));
+        Assert.That(_directions, Is.Empty);
     }
 
     [Test]
@@ -87,7 +118,7 @@ public class ExplorerTest
                  x |
                 +--+
                 """);
-        var test = new Explorer(crawler, new FakeRandom(1, 0));
+        var test = NewExplorer(crawler, 0, 2);
 
         var found = test.GetOut(10);
 
@@ -97,17 +128,19 @@ public class ExplorerTest
         Assert.That(crawler.X, Is.EqualTo(0));
         Assert.That(crawler.Y, Is.EqualTo(1));
         Assert.That(crawler.Direction, Is.EqualTo(Direction.West));
+        Assert.That(_directions, Is.EqualTo(new[] { (1, 1, Direction.West) }));
+        Assert.That(_positions, Is.EqualTo(new[] { (0, 1, Direction.West) }));
     }
 
     [Test]
-    public void GetOutTurnsRightInsteadOfWalkingIntoAWall()
+    public void GetOutTurnsInsteadOfWalkingIntoAWall()
     {
         var crawler = NewCrawlerFor("""
                 +--+
                 | x|
                 +--+
                 """);
-        var test = new Explorer(crawler, new FakeRandom(0));
+        var test = NewExplorer(crawler, 2);
 
         var found = test.GetOut(1);
 
@@ -116,7 +149,9 @@ public class ExplorerTest
         Assert.That(found, Is.False);
         Assert.That(crawler.X, Is.EqualTo(2));
         Assert.That(crawler.Y, Is.EqualTo(1));
-        Assert.That(crawler.Direction, Is.EqualTo(Direction.East));
+        Assert.That(crawler.Direction, Is.EqualTo(Direction.West));
+        Assert.That(_positions, Is.Empty);
+        Assert.That(_directions, Is.EqualTo(new[] { (2, 1, Direction.West) }));
     }
 
     [Test]
@@ -127,7 +162,7 @@ public class ExplorerTest
                 | x|
                 +--+
                 """);
-        var test = new Explorer(crawler, new FakeRandom(2, 2, 2, 2, 2));
+        var test = NewExplorer(crawler, 1, 1, 1, 1, 1);
 
         var found = test.GetOut(3);
 
@@ -135,5 +170,12 @@ public class ExplorerTest
 
         Assert.That(found, Is.False);
         Assert.That(crawler.Direction, Is.EqualTo(Direction.West));
+        Assert.That(_positions, Is.Empty);
+        Assert.That(_directions, Is.EqualTo(new[]
+        {
+            (2, 1, Direction.East),
+            (2, 1, Direction.South),
+            (2, 1, Direction.West)
+        }));
     }
 }
